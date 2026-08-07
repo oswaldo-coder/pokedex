@@ -8,6 +8,16 @@ const mensaje = document.getElementById("mensaje");
 let pokedex = [];
 let offset = 0;
 
+function mostrarSpinner() {
+  spinner.classList.remove("hidden");
+  spinner.classList.add("flex");
+}
+
+function ocultarSpinner() {
+  spinner.classList.add("hidden");
+  spinner.classList.remove("flex");
+}
+
 function crearTarjeta(pokemon) {
   const { nombre, imagen, tipos } = pokemon;
   const img = imagen ?? "https://via.placeholder.com/96?text=?";
@@ -21,14 +31,14 @@ function crearTarjeta(pokemon) {
     })
     .join("");
   const articulo = document.createElement("article");
-  articulo.className = "bg-white rounded-xl shadow p-4 text-center";
+  articulo.className = "bg-white rounded-xl shadow p-4 text-center border-2 border-slate-200";
   articulo.innerHTML = `
     <img
       src="${img}"
       alt="${nombre}"
       class="w-24 h-24 mx-auto"
     >
-    <h2 class="capitalize font-bold text-slate-800 mt-2">
+    <h2 class="capitalize font-bold text-slate-800 mt-2 text-xs">
       ${nombre}
     </h2>
     <div class="flex gap-1 justify-center mt-2 flex-wrap">
@@ -59,7 +69,7 @@ function adaptarPokemon(data) {
   };
 }
 
-// ---------- HU2: obtenerPokemon detecta 404 y lanza error propio ----------
+// ---------- obtenerPokemon detecta 404 y lanza error propio ----------
 
 async function obtenerPokemon(idONombre) {
   const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${idONombre}`);
@@ -71,10 +81,10 @@ async function obtenerPokemon(idONombre) {
   return response.json();
 }
 
-// ---------- HU3: carga inicial con spinner + try/catch/finally ----------
+// ---------- carga inicial con spinner + try/catch/finally ----------
 
 async function cargarPokedex() {
-  spinner.classList.remove("hidden");
+  mostrarSpinner();
   mensaje.classList.add("hidden");
 
   try {
@@ -86,7 +96,7 @@ async function cargarPokedex() {
     mensaje.textContent = "No se pudo cargar la Pokédex.";
     mensaje.classList.remove("hidden");
   } finally {
-    spinner.classList.add("hidden");
+    ocultarSpinner();
   }
 }
 
@@ -99,10 +109,8 @@ async function buscarPokemon(nombre) {
   return adaptarPokemon(data);
 }
 
-// ---------- HU1 + HU2 + HU3: try/catch/finally + spinner + mensaje ----------
-
 async function mostrarBusqueda(nombre) {
-  spinner.classList.remove("hidden");
+  mostrarSpinner();
   mensaje.classList.add("hidden");
 
   try {
@@ -112,7 +120,7 @@ async function mostrarBusqueda(nombre) {
     mensaje.textContent = error.message;
     mensaje.classList.remove("hidden");
   } finally {
-    spinner.classList.add("hidden");
+    ocultarSpinner();
   }
 }
 
@@ -125,9 +133,37 @@ buscador.addEventListener("keydown", function (event) {
   if (event.key === "Enter") boton.click();
 });
 
+// ---------- Animación de captura (pokébola) ----------
+
+function crearPokebolaAnimada() {
+  const overlay = document.createElement("div");
+  overlay.className = "fixed inset-0 flex items-center justify-center z-50 pointer-events-none";
+  overlay.innerHTML = `
+    <svg class="pokebola-anim w-24 h-24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="46" fill="#ef4444" stroke="#1e293b" stroke-width="4"/>
+      <path d="M4 50 H96" stroke="#1e293b" stroke-width="6"/>
+      <path d="M50 4 A46 46 0 0 1 50 50 H4 A46 46 0 0 1 50 4" fill="#ef4444"/>
+      <path d="M50 50 A46 46 0 0 1 50 96 H4 A46 46 0 0 1 50 50" fill="#fff"/>
+      <circle cx="50" cy="50" r="14" fill="#fff" stroke="#1e293b" stroke-width="5"/>
+      <circle cx="50" cy="50" r="6" fill="#f8fafc" stroke="#1e293b" stroke-width="3"/>
+    </svg>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("animationend", function () {
+    overlay.remove();
+  });
+
+  setTimeout(function () {
+    if (overlay.isConnected) overlay.remove();
+  }, 900);
+}
+
 // ---------- Capturar y mostrar resultado (con estadísticas) ----------
 
 function capturar(pokemon) {
+  crearPokebolaAnimada();
+
   if (!pokedex.some(function (p) { return p.nombre === pokemon.nombre; })) {
     pokedex.push(pokemon);
   }
@@ -152,7 +188,7 @@ function mostrarResultado(pokemon) {
 
   const botonCapturar = document.createElement("button");
   botonCapturar.textContent = "⚡ Capturar";
-  botonCapturar.className = "mt-2 w-full bg-yellow-400 font-semibold rounded-lg py-1 hover:bg-yellow-500";
+  botonCapturar.className = "mt-2 w-full bg-yellow-400 font-semibold rounded-lg py-1 hover:bg-yellow-500 text-xs";
   botonCapturar.addEventListener("click", function () {
     capturar(pokemon);
   });
@@ -165,7 +201,7 @@ function mostrarResultado(pokemon) {
 // ---------- Cargar más ----------
 
 async function cargarMas() {
-  spinner.classList.remove("hidden");
+  mostrarSpinner();
   mensaje.classList.add("hidden");
 
   try {
@@ -195,7 +231,7 @@ async function cargarMas() {
     mensaje.textContent = error.message;
     mensaje.classList.remove("hidden");
   } finally {
-    spinner.classList.add("hidden");
+    ocultarSpinner();
   }
 }
 
